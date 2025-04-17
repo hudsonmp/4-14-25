@@ -1,0 +1,297 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Vibe Coding Project Finder: Implementation Guide
+
+## Project Architecture Overview
+
+This document provides a comprehensive guide for implementing your vibe coding project finder, with a focus on maintainable architecture, clear API design, and educational implementation steps.
+
+```
+Project Structure
+├── backend/                # Flask API server
+│   ├── api/                # API routes
+│   ├── models/             # Data models
+│   ├── services/           # Business logic
+│   ├── utils/              # Helper functions
+│   └── app.py              # Main application entry
+└── frontend/               # React application
+    ├── public/             # Static assets
+    ├── src/
+    │   ├── components/     # UI components
+    │   ├── hooks/          # Custom React hooks
+    │   ├── pages/          # Page components
+    │   ├── services/       # API client services
+    │   ├── styles/         # CSS/styling
+    │   └── App.jsx         # Main app component
+    └── package.json        # Frontend dependencies
+```
+
+## Backend Implementation
+
+### File Structure Breakdown
+
+```
+backend/
+├── api/
+│   ├── __init__.py         # Initialize API blueprints
+│   ├── projects.py         # Project endpoints
+│   └── user_interests.py   # User interest endpoints
+├── models/
+│   ├── __init__.py
+│   └── project.py          # Project data model
+├── services/
+│   ├── __init__.py
+│   ├── embedding_service.py    # Vector embedding logic
+│   ├── openai_service.py       # OpenAI API integration
+│   ├── pinecone_service.py     # Pinecone DB operations
+│   └── reddit_service.py       # Reddit scraping logic
+├── utils/
+│   ├── __init__.py
+│   └── helpers.py          # Helper functions
+├── config.py               # Configuration settings
+├── app.py                  # Application entry point
+└── requirements.txt        # Python dependencies
+```
+
+### API Endpoints
+
+#### Project Endpoints (`/api/projects`)
+
+| Endpoint | Method | Purpose | Request Body | Response |
+|----------|--------|---------|--------------|----------|
+| `/api/projects/search` | POST | Search for projects based on query and interests | `{ "query": string, "interests": string[] }` | List of matching projects with similarity scores |
+| `/api/projects/generate` | POST | Generate a new project idea based on existing ones | `{ "base_project_id": string, "interests": string[] }` | Transformed project idea with implementation plan |
+| `/api/projects/plan` | POST | Get implementation plan for a project | `{ "project_id": string }` | Detailed implementation plan |
+| `/api/projects/iterate` | POST | Iterate on an existing plan | `{ "plan_id": string, "feedback": string }` | Updated implementation plan |
+
+#### User Interest Endpoints (`/api/interests`)
+
+| Endpoint | Method | Purpose | Request Body | Response |
+|----------|--------|---------|--------------|----------|
+| `/api/interests` | GET | Get recommended interest categories | N/A | List of interest categories |
+| `/api/interests` | POST | Save user interests | `{ "interests": string[] }` | Saved interests confirmation |
+
+### Key Services Implementation
+
+#### 1. Reddit Service (`reddit_service.py`)
+
+This service handles the scraping of Reddit posts using PRAW.
+
+**Key Functions:**
+- `scrape_subreddits(subreddits, limit=100)`: Scrapes posts from multiple subreddits
+- `process_posts(posts)`: Cleans and standardizes post data
+- `schedule_refresh()`: Sets up the regular refresh job
+
+#### 2. Embedding Service (`embedding_service.py`)
+
+Handles the creation of vector embeddings for posts.
+
+**Key Functions:**
+- `create_embedding(text)`: Creates vector embedding using llama-text-embed-v2
+- `batch_process_embeddings(posts)`: Processes multiple posts in batches
+
+#### 3. Pinecone Service (`pinecone_service.py`)
+
+Manages interactions with the Pinecone vector database.
+
+**Key Functions:**
+- `initialize_pinecone()`: Sets up Pinecone connection
+- `store_embeddings(embeddings, metadata)`: Stores vectors in Pinecone
+- `query_similar(query_embedding, metadata_filter, top_k=10)`: Finds similar vectors
+
+#### 4. OpenAI Service (`openai_service.py`)
+
+Handles interactions with OpenAI API for metadata extraction and plan generation.
+
+**Key Functions:**
+- `extract_metadata(posts)`: Extracts metadata from posts
+- `transform_project(base_project, interests)`: Transforms projects
+- `generate_implementation_plan(project)`: Creates implementation plans
+- `iterate_on_plan(plan, feedback)`: Updates plans based on feedback
+
+### Main Application (`app.py`)
+
+The entry point for the Flask application that sets up all routes and services.
+
+## Frontend Implementation
+
+### File Structure Breakdown
+
+```
+frontend/src/
+├── components/
+│   ├── common/
+│   │   ├── Button.jsx
+│   │   ├── Input.jsx
+│   │   └── Card.jsx
+│   ├── layout/
+│   │   ├── Header.jsx
+│   │   └── Footer.jsx
+│   ├── projects/
+│   │   ├── ProjectCard.jsx
+│   │   ├── ProjectList.jsx
+│   │   ├── SearchForm.jsx
+│   │   └── ImplementationPlan.jsx
+│   └── interests/
+│       ├── InterestSelector.jsx
+│       └── InterestTag.jsx
+├── hooks/
+│   ├── useProjects.js      # Custom hook for project API calls
+│   └── useInterests.js     # Custom hook for interest management
+├── pages/
+│   ├── HomePage.jsx
+│   ├── SearchPage.jsx
+│   ├── ProjectDetailPage.jsx
+│   └── ImplementationPage.jsx
+├── services/
+│   ├── api.js              # Base API configuration
+│   ├── projectService.js   # Project-related API calls
+│   └── interestService.js  # Interest-related API calls
+├── styles/
+│   └── global.css          # Global styles
+├── App.jsx                 # Main application component
+├── index.jsx               # Entry point for React app
+└── routes.jsx              # Application routes
+```
+
+### Key Components Implementation
+
+#### 1. Interest Management
+
+- **InterestSelector.jsx**: Allows users to select their interest areas
+- **useInterests.js**: Hook to manage state and API calls for interests
+
+#### 2. Project Search
+
+- **SearchForm.jsx**: Form for querying projects based on interests
+- **ProjectList.jsx**: Displays search results
+- **ProjectCard.jsx**: Card component for individual project display
+
+#### 3. Implementation Plans
+
+- **ImplementationPlan.jsx**: Displays and allows iteration on plans
+
+### API Service Implementation (`services/projectService.js`)
+
+```javascript
+// Example structure for the API service
+export const projectService = {
+  searchProjects: (query, interests) => {
+    // Implementation for API call to search projects
+  },
+  generateProject: (baseProjectId, interests) => {
+    // Implementation for API call to generate new project
+  },
+  getImplementationPlan: (projectId) => {
+    // Implementation for getting plan
+  },
+  iterateOnPlan: (planId, feedback) => {
+    // Implementation for updating plan
+  }
+};
+```
+
+## Implementation Strategy
+
+### 1. Setting Up the Development Environment (1-2 hours)
+
+- Create project structure for both backend and frontend
+- Set up Flask with basic routes and React with basic components
+- Configure development environment (linting, formatting, etc.)
+
+### 2. Backend Core Implementation (8-10 hours)
+
+#### Phase 1: Data Collection (3-4 hours)
+1. Implement Reddit scraping service
+2. Test scraping functionality with sample subreddits
+3. Set up data processing and cleaning
+
+#### Phase 2: Vector Database Integration (3-4 hours)
+1. Implement embedding service with llama-text-embed-v2
+2. Set up Pinecone connection and operations
+3. Test storing and retrieving vectors
+
+#### Phase 3: OpenAI Integration (2-3 hours)
+1. Implement OpenAI service for metadata extraction
+2. Implement project transformation and plan generation
+3. Test with sample data
+
+### 3. Frontend Implementation (6-8 hours)
+
+#### Phase 1: Basic UI Components (2-3 hours)
+1. Set up React with Shadcn components
+2. Implement layout and common components
+3. Create interest selection interface
+
+#### Phase 2: Project Search & Display (2-3 hours)
+1. Implement search form and results display
+2. Create project cards and detailed view
+3. Connect to backend API
+
+#### Phase 3: Implementation Plans (2 hours)
+1. Create implementation plan display
+2. Add iteration interface
+3. Polish the user experience
+
+### 4. Integration & Testing (2-3 hours)
+
+1. Integrate all components
+2. Test end-to-end workflow
+3. Fix bugs and edge cases
+
+### 5. Deployment & Documentation (1-2 hours)
+
+1. Deploy backend and frontend
+2. Complete documentation
+3. Set up scheduled tasks for data refresh
+
+## Learning Focus Areas
+
+To ensure you understand every line of code, focus on these key learning areas:
+
+1. **Reddit API & PRAW**: Understand how to efficiently scrape multiple subreddits simultaneously
+
+2. **Vector Embeddings**: Learn how llama-text-embed-v2 transforms text into vector representations and how similarity search works
+
+3. **Pinecone Integration**: Understand vector database operations including metadata filtering and semantic search
+
+4. **OpenAI API Integration**: Learn proper prompt engineering for metadata extraction and plan generation
+
+5. **React Hooks Pattern**: Understand how to create custom hooks for API calls and state management
+
+6. **Flask API Design**: Learn RESTful API design principles and implementation
+
+## Tips for Understanding the Code
+
+1. **Start with the Data Flow**: Follow how data moves from Reddit to the user
+   - Reddit posts → Vector embeddings → Pinecone DB → Search results → Transformations → Plans
+
+2. **Implement Incrementally**: Build and test one service at a time
+   - Start with Reddit service, then embeddings, then search, etc.
+
+3. **Add Logging**: Add detailed logs to understand how each component works
+   - Log inputs/outputs of key functions and API calls
+
+4. **Comment Your Code**: Add comments explaining the purpose of each function
+
+5. **Review API Documentation**: Spend time understanding the APIs you're integrating with
+   - PRAW, Pinecone, and OpenAI all have excellent documentation
+
+## Potential Challenges & Solutions
+
+1. **Rate Limiting**: Reddit and OpenAI APIs have rate limits
+   - Solution: Implement rate limiting, batching, and exponential backoff
+
+2. **Data Quality**: Reddit posts vary in quality and format
+   - Solution: Implement robust data cleaning and filtering
+
+3. **Vector Search Tuning**: Finding the right similarity threshold
+   - Solution: Experiment with different thresholds and test with sample queries
+
+4. **Plan Quality**: Ensuring generated plans are useful
+   - Solution: Refine prompts and implement feedback mechanism
+
+This implementation guide provides a structured approach to building your vibe coding project finder. By following this guide, you'll create a well-organized application that's both educational and efficient to build.

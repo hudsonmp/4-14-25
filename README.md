@@ -1,36 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vibe Coding Project Finder
 
-## Getting Started
+A smart application that helps developers find weekend vibe coding project ideas by analyzing posts from programming subreddits. The application uses vector embeddings and semantic search to recommend personalized project ideas based on user interests.
 
-First, run the development server:
+## Configuration System
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+The project uses a centralized configuration system in `config.py` to manage all application settings. This approach provides several benefits:
+
+- Centralized management of all application settings
+- Easy environment variable handling
+- Flexible configuration for different deployment scenarios
+- Clear documentation of available settings
+
+### Environment Variables
+
+The application uses the following environment variables (stored in `.env`):
+
+```env
+# Reddit API credentials
+REDDIT_CLIENT_ID=your_client_id
+REDDIT_CLIENT_SECRET=your_client_secret
+REDDIT_USER_AGENT=your_user_agent
+
+# Pinecone configuration (to be implemented)
+PINECONE_API_KEY=your_pinecone_api_key
+PINECONE_ENVIRONMENT=your_pinecone_environment
+
+# OpenAI configuration (to be implemented)
+OPENAI_API_KEY=your_openai_api_key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Configuration Sections
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+#### 1. Reddit API Configuration
+- Manages Reddit API credentials and authentication
+- Defines target subreddits for project idea scraping
+- Controls rate limiting and data refresh intervals
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### 2. Pinecone Vector Database
+- Configures vector storage and similarity search
+- Sets up index name and embedding dimensions
+- Manages connection settings and environment
 
-## Learn More
+#### 3. OpenAI Integration
+- Controls API access and model selection
+- Manages rate limiting for API calls
+- Configures model-specific parameters
 
-To learn more about Next.js, take a look at the following resources:
+#### 4. Application Settings
+- Controls Flask server configuration
+- Manages debug mode and port settings
+- Sets up logging and error handling
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+#### 5. Vector Search Settings
+The application implements a sophisticated similarity search system with the following features:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+##### Base Threshold Configuration
+- `BASE_SIMILARITY_THRESHOLD`: Default starting point (0.75)
+- `MIN_SIMILARITY_THRESHOLD`: Lower bound (0.65)
+- `MAX_SIMILARITY_THRESHOLD`: Upper bound (0.85)
 
-## Deploy on Vercel
+##### Dynamic Threshold Adjustment
+The system automatically adjusts similarity thresholds based on:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **Query Specificity**
+   - Longer, more detailed queries increase the threshold
+   - `QUERY_LENGTH_THRESHOLD`: 50 characters
+   - `SPECIFICITY_BOOST`: 0.05 per threshold increase
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. **Interest Diversity**
+   - More interest categories lower the threshold
+   - `MAX_INTEREST_CATEGORIES`: 5
+   - `INTEREST_DIVERSITY_BOOST`: 0.03 per category
+
+3. **Result Modes**
+   - `RESULT_MODE_FIXED`: Return exactly N results
+   - `RESULT_MODE_THRESHOLD`: Return all results above threshold
+   - Configurable result counts with min/max bounds
+
+### Implementation Approach
+
+The configuration system follows these principles:
+
+1. **Separation of Concerns**
+   - Environment variables are loaded once at startup
+   - Configuration values are accessed through constants
+   - Service-specific settings are grouped logically
+
+2. **Flexibility**
+   - All settings can be overridden through environment variables
+   - Default values are provided for development
+   - Production settings can be configured separately
+
+3. **Maintainability**
+   - Clear documentation of each setting
+   - Logical grouping of related settings
+   - Easy to add new configuration options
+
+4. **Security**
+   - Sensitive credentials are stored in environment variables
+   - No hardcoded secrets in configuration files
+   - Clear separation of development and production settings
+
+### Best Practices
+
+1. **Environment Variables**
+   - Always use environment variables for sensitive data
+   - Provide default values for development
+   - Document all required environment variables
+
+2. **Configuration Updates**
+   - Update documentation when adding new settings
+   - Consider backward compatibility
+   - Test configuration changes in development
+
+3. **Error Handling**
+   - Validate configuration values at startup
+   - Provide clear error messages for missing settings
+   - Log configuration changes for debugging
+
+4. **Performance**
+   - Load configuration once at startup
+   - Cache frequently accessed values
+   - Minimize environment variable access
+
+## Development Setup
+
+1. Clone the repository
+2. Create a `.env` file with required environment variables
+3. Install dependencies: `pip install -r requirements.txt`
+4. Run the application: `python backend/app.py`
+
+## Contributing
+
+When adding new features that require configuration:
+
+1. Add new settings to `config.py`
+2. Document the settings in this README
+3. Update the `.env.example` file
+4. Test the configuration in development
+5. Submit a pull request with changes

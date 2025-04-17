@@ -1,0 +1,34 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Problem Statement: Vibe coding has recently risen in popularity with tools like Cursor and Windsurf, but finding an idea for a weekend project can become too complicated.  
+Solution:
+
+- First iteration  
+  - Scrape the following Reddit communities using PRAW. Don’t scrape each subreddit individually, but instead use PRAW to scrape all of them all in one go:  
+    - r/SideProject  
+    - r/learnprogramming  
+    - r/vibecoding  
+    - r/ChatGPTCoding  
+    - r/webdev  
+  - Use llama-text-embed-v2 via Pinecone (NVIDIA) to create and store vector embeddings for each scraped post in a database. Include metadata filtering to ensure we match projects that share the user’s interest, relevance, etc.   
+  - After the posts are scraped, send their titles and content in batches to reduce API calls to a language model via the OpenAI API to return metadata (category, estimated project time, skill level, tech used)   
+  - No authentication  
+  - User inputs their interest areas for vibe coding. This will help the model use the metadata to recommend project ideas  
+  - User can query the database to find project ideas. Examples:  
+    - Find me a project that I can work on this weekend that has to do with education and curriculum planning  
+    - Identify nuanced problems that can be solved with a SaaS project  
+    - What is a cool project to work on this weekend that relates to my interests?  
+  - Projects that are most similar to the query and the user’s interests undergo transformations to transform the existing projects into new project ideas that are similar.   
+  - An API call is made to ChatGPT API to create a concise project implementation plan than identifies the issue and how the user can solve it with a vibe coding project.  
+  - User queries the API to iterate on the plan  
+  - Refresh the data every other data to add new posts to the database  
+- Tech stack  
+  - PRAW for scraping (output JSON files stored in Pinecone)  
+  - Flask for backend  
+  - React for frontend  
+  - Shadcn for UI  
+  - Pinecone for vector embeddings and storage (llama-text-embed-v2)  
+  - OpenAI API 4o-mini for plan
