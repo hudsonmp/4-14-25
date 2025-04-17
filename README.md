@@ -77,6 +77,86 @@ The system automatically adjusts similarity thresholds based on:
    - `RESULT_MODE_THRESHOLD`: Return all results above threshold
    - Configurable result counts with min/max bounds
 
+## Reddit Scraping Service
+
+The application uses a dedicated Reddit Scraping Service to collect project ideas from programming subreddits. This service leverages the PRAW (Python Reddit API Wrapper) library to interact with the Reddit API in a responsible and efficient way.
+
+### Service Features
+
+- **Multi-subreddit Scraping**: Collects posts from multiple subreddits in a single operation
+- **Data Processing**: Cleans and standardizes post data for embedding and storage
+- **Scheduled Refreshes**: Automatically refreshes data at configurable intervals
+- **Rate Limit Handling**: Respects Reddit API rate limits to avoid throttling
+
+### Targeted Subreddits
+
+The service is configured to scrape the following programming and project-focused subreddits:
+- r/SideProject
+- r/learnprogramming
+- r/vibecoding
+- r/ChatGPTCoding
+- r/webdev
+
+### Setting Up Reddit API Credentials
+
+To use the Reddit Scraping Service, you need to create a Reddit API application:
+
+1. **Create a Reddit Account**: If you don't already have one, sign up at [reddit.com](https://www.reddit.com)
+
+2. **Create a Reddit API Application**:
+   - Go to [https://www.reddit.com/prefs/apps](https://www.reddit.com/prefs/apps)
+   - Click "Create App" or "Create Another App" at the bottom
+   - Fill in the details:
+     - **Name**: VibeCodeProjectFinder (or any name you prefer)
+     - **App Type**: Choose "script"
+     - **Description**: App to find vibe coding project ideas
+     - **About URL**: (Optional) Your GitHub repository URL
+     - **Redirect URI**: http://localhost:8000/reddit_callback (not actually used for script apps)
+   - Click "Create App"
+
+3. **Get Your Credentials**:
+   - After creating the app, note down the following:
+     - **Client ID**: The string under "personal use script"
+     - **Client Secret**: The string labeled "secret"
+
+4. **Configure Environment Variables**:
+   - Add the credentials to your `.env` file:
+     ```
+     REDDIT_CLIENT_ID=your_client_id
+     REDDIT_CLIENT_SECRET=your_client_secret
+     REDDIT_USER_AGENT=VibeCodeProjectFinder/1.0 by YourUsername
+     ```
+   - Optionally, add username and password for script authentication (if needed):
+     ```
+     REDDIT_USERNAME=your_reddit_username
+     REDDIT_PASSWORD=your_reddit_password
+     ```
+
+### Authentication Methods
+
+The service supports two authentication methods:
+
+1. **Read-only Authentication** (Recommended for this application)
+   - Only requires `client_id`, `client_secret`, and `user_agent`
+   - Limited to read-only operations (which is all we need for scraping)
+   - No need to expose your Reddit account credentials
+
+2. **Script Authentication**
+   - Requires additional `username` and `password`
+   - Allows both read and write operations
+   - Higher rate limits in some cases
+   - Only use if additional functionality is needed beyond scraping
+
+### Best Practices for Reddit API Usage
+
+The service follows these best practices:
+
+1. **Respect Rate Limits**: Reddit limits API calls to 60 requests per minute
+2. **Use Appropriate User-Agent**: Always use a descriptive user-agent string
+3. **Implement Exponential Backoff**: Gradually increase delays between retries on failures
+4. **Cache Results**: Store scraped data to minimize API calls
+5. **Schedule Off-peak Refreshes**: Run batch operations during off-peak hours
+
 ### Implementation Approach
 
 The configuration system follows these principles:
